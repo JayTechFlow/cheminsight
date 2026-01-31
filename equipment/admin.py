@@ -1,3 +1,10 @@
 from django.contrib import admin
+from .models import UploadHistory
 
-# Register your models here.
+@admin.register(UploadHistory)
+class UploadHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "file_name",
+        "uploaded_at",
+        "total_equipment",
+    )

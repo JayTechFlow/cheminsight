@@ -1,49 +1,42 @@
 import pandas as pd
-from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Dataset
-from rest_framework.generics import ListAPIView
-from .serializers import DatasetSerializer
 
-class UploadCSV(APIView):
-    def post(self, request):
-        if 'file' not in request.FILES:
-            return Response(
-                {"error": "No file uploaded"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+from .models import UploadHistory
+from .serializers import UploadHistorySerializer
 
-        file = request.FILES['file']
 
-        try:
-            df = pd.read_csv(file)
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+@api_view(["POST"])
+def upload_csv(request):
+    file = request.FILES.get("file")
 
-        summary = {
-            "total_equipment": int(len(df)),
-            "avg_flowrate": float(df["Flowrate"].mean()),
-            "avg_pressure": float(df["Pressure"].mean()),
-            "avg_temperature": float(df["Temperature"].mean()),
-            "type_distribution": df["Type"].value_counts().to_dict()
-        }
+    if not file:
+        return Response({"error": "No file uploaded"}, status=400)
 
-        Dataset.objects.create(
-            total_equipment=summary["total_equipment"],
-            avg_flowrate=summary["avg_flowrate"],
-            avg_pressure=summary["avg_pressure"],
-            avg_temperature=summary["avg_temperature"]
-        )
+    df = pd.read_csv(file)
 
-        # Keep only last 5 datasets
-        if Dataset.objects.count() > 5:
-            Dataset.objects.order_by('uploaded_at').first().delete()
+    total_equipment = len(df)
+    avg_flowrate = df["Flowrate"].mean()
+    avg_pressure = df["Pressure"].mean()
+    avg_temperature = df["Temperature"].mean()
 
-        return Response(summary, status=status.HTTP_200_OK)
-class DatasetHistory(ListAPIView):
-    queryset = Dataset.objects.order_by('-uploaded_at')[:5]
-    serializer_class = DatasetSerializer
+    type_distribution = df["Type"].value_counts().to_dict()
+
+    history = UploadHistory.objects.create(
+        file_name=file.name,
+        total_equipment=total_equipment,
+        avg_flowrate=avg_flowrate,
+        avg_pressure=avg_pressure,
+        avg_temperature=avg_temperature,
+        type_distribution=type_distribution,
+    )
+
+    serializer = UploadHistorySerializer(history)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+def upload_history(request):
+    last_five = UploadHistory.objects.order_by("-uploaded_at")[:5]
+    serializer = UploadHistorySerializer(last_five, many=True)
+    return Response(serializer.data)

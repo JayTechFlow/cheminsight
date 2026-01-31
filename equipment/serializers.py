@@ -1,7 +1,16 @@
 from rest_framework import serializers
-from .models import Dataset
+from .models import UploadHistory
 
-class DatasetSerializer(serializers.ModelSerializer):
+class UploadHistorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Dataset
-        fields = '__all__'
+        model = UploadHistory
+        fields = [
+            "id",
+            "file_name",
+            "uploaded_at",
+            "total_equipment",
+            "avg_flowrate",
+            "avg_pressure",
+            "avg_temperature",
+            "type_distribution",
+        ]

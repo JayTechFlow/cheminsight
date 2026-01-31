@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import UploadCSV, DatasetHistory
+from .views import upload_csv, upload_history
 
 urlpatterns = [
-    path('upload/', UploadCSV.as_view(), name='upload-csv'),
-    path('history/', DatasetHistory.as_view(), name='dataset-history'),
+    path("upload/", upload_csv),
+    path("history/", upload_history),
 ]
