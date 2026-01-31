@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Dataset
+from rest_framework.generics import ListAPIView
+from .serializers import DatasetSerializer
 
 class UploadCSV(APIView):
     def post(self, request):
@@ -42,3 +44,6 @@ class UploadCSV(APIView):
             Dataset.objects.order_by('uploaded_at').first().delete()
 
         return Response(summary, status=status.HTTP_200_OK)
+class DatasetHistory(ListAPIView):
+    queryset = Dataset.objects.order_by('-uploaded_at')[:5]
+    serializer_class = DatasetSerializer
