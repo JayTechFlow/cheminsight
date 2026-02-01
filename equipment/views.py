@@ -13,8 +13,6 @@ from reportlab.pdfgen import canvas
 
 
 @api_view(["POST"])
-@authentication_classes([BasicAuthentication])
-@permission_classes([IsAuthenticated])
 def upload_csv(request):
 
     file = request.FILES.get("file")
@@ -45,16 +43,12 @@ def upload_csv(request):
 
 
 @api_view(["GET"])
-@authentication_classes([BasicAuthentication])
-@permission_classes([IsAuthenticated])
 def upload_history(request):
 
     last_five = UploadHistory.objects.order_by("-uploaded_at")[:5]
     serializer = UploadHistorySerializer(last_five, many=True)
     return Response(serializer.data)
 @api_view(["GET"])
-@authentication_classes([BasicAuthentication])
-@permission_classes([IsAuthenticated])
 def download_pdf_report(request, history_id):
     history = get_object_or_404(UploadHistory, id=history_id)
 
